@@ -1,5 +1,19 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
+from datetime import datetime
+from pymongo import MongoClient
+
+# Conexão com MongoDB
+client = MongoClient("mongodb://localhost:27017")
+db = client.products_logs
+views_collection = db.views_log
+
+def log_product_view(product_id):
+    view_data = {
+        "product_id": product_id,
+        "timestamp": datetime.utcnow()
+    }
+    views_collection.insert_one(view_data)
 
 # Função para criar um novo produto
 def create_product(db: Session, product: schemas.ProductCreate):
