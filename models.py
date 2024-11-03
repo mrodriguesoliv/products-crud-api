@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, Enum
-from .database import Base
+from database import Base
 import enum
 
 # Modelo dos Status dos Produtos

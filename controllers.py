@@ -1,13 +1,16 @@
-from sqlalchemy.orm import Session
-from . import models, schemas
+import models
+import schemas
 from datetime import datetime
 from pymongo import MongoClient
+from sqlalchemy.orm import Session
+
 
 # Conexão com MongoDB
 client = MongoClient("mongodb://localhost:27017")
 db = client.products_logs
 views_collection = db.views_log
 
+# Função para visualizar o log do produto
 def log_product_view(product_id):
     view_data = {
         "product_id": product_id,
@@ -29,13 +32,34 @@ def create_product(db: Session, product: schemas.ProductCreate):
     db.refresh(db_product)
     return db_product
 
-# Função para obter um produto por ID
-def get_product(db: Session, product_id: int):
-    return db.query(models.Product).filter(models.Product.id == product_id).first()
+# Função para ler um produto por ID e registrar visualização
+def read_product(db: Session, product_id: int):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if product:
+        log_product_view(product_id)
+        return {
+            "name": product.name,
+            "description": product.description,
+            "price": product.price
+        }
+    return None
 
-# Função para obter todos os produtos
-def get_products(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(models.Product).offset(skip).limit(limit).all()
+# Função para ler todos os produtos e registrar visualizações
+def get_all_products(db: Session):
+    # Recupera todos os produtos do banco de dados
+    products = db.query(models.Product).all()
+    product_list = []
+
+    for product in products:
+        log_product_view(product.id)
+        product_list.append({
+            "id": product.id,
+            "name": product.name,
+            "description": product.description,
+            "price": product.price,
+        })
+    
+    return product_list
 
 # Função para atualizar um produto existente
 def update_product(db: Session, product_id: int, product: schemas.ProductUpdate):

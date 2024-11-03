@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from .models import Product
-from .schemas import ProductCreate, ProductResponse
-from .database import get_db
+from models import Product
+from schemas import ProductCreate, ProductResponse
+from database import get_db
+from controllers import  get_all_products
+
 
 router = APIRouter()
 
@@ -21,11 +23,18 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
     db.refresh(db_product)
     return db_product
 
-# Ler produtos
+# Ler um produto específico por ID
+@router.get("/products/{product_id}", response_model=ProductResponse)
+def read_product(product_id: int, db: Session = Depends(get_db)):
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+    if db_product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return db_product
+
+# Ler todos os produtos
 @router.get("/products/", response_model=list[ProductResponse])
-def read_products(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    products = db.query(Product).offset(skip).limit(limit).all()
-    return products
+def read_all_products(db: Session = Depends(get_db)):
+    return get_all_products(db)
 
 # Atualizar um produto
 @router.put("/products/{product_id}", response_model=ProductResponse)

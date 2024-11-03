@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: products_crud_api_app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/products_logs
+      - SQLALCHEMY_DATABASE_URL=sqlite:///./products_crud_api.db
+    networks:
+      - app_network
+
+  mongo:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
