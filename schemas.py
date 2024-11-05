@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
-from typing import Annotated
+from typing import Annotated, Optional, List
 from enum import Enum
-from typing import Optional
+from datetime import datetime
 
 # Enumeração para os status de um produto
 class ProductStatus(str, Enum):
@@ -19,7 +19,7 @@ class ProductBase(BaseModel):
     stock_quantity: Optional[Annotated[int, Field(ge=0, title="Quantidade em Estoque")]] = Field(None)
 
     class Config:
-        model_config = {"from_attributes": True}
+        orm_mode = True
 
 # Classe para criar um novo produto
 class ProductCreate(ProductBase):
@@ -27,8 +27,21 @@ class ProductCreate(ProductBase):
 
 # Classe para representar a resposta do produto
 class ProductResponse(ProductBase):
-    id: int
+    class Config:
+        orm_mode = True
 
 # Classe para atualizar um produto
 class ProductUpdate(ProductBase):
     pass
+
+# Classe para log de visualizações
+class ProductLog(BaseModel):
+    searched_at: datetime 
+
+# Classe para produto com logs
+class ProductWithLogs(BaseModel):
+    id: int
+    name: str
+    description: str
+    price: float
+    logs: List[ProductLog]

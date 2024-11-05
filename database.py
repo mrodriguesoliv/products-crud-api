@@ -1,10 +1,8 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 from pymongo import MongoClient
-
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -16,7 +14,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # Configuração do MongoDB com pymongo
-MONGO_DETAILS = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+MONGO_DETAILS = os.getenv("MONGO_URI", "mongodb://mongodb:27017")
 client = MongoClient(MONGO_DETAILS)
 
 # Banco de dados MongoDB

@@ -1,28 +1,19 @@
-import models
-import os
-import schemas
+from pymongo.errors import PyMongoError
 from datetime import datetime
-from pymongo import MongoClient
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from dotenv import load_dotenv
+from pymongo.errors import PyMongoError
+import models
+import schemas
+from database import views_collection
+from typing import List
 
 
-# Conexão com MongoDB
-MONGO_DETAILS = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-client = MongoClient(MONGO_DETAILS)
-db = client.products_logs
-
-# Função para visualizar o log do produto
-def log_product_view(product_id: int):
-    # Inserir um log de visualização
-    db.product_views.insert_one({
-        "product_id": product_id,
-        "viewed_at": datetime.now()
-    })
+load_dotenv()
 
 # Função para criar um novo produto
-def post_product(db: Session, product: schemas.ProductCreate):
+def post_product(db: Session, product: schemas.ProductCreate) -> models.Product:
     db_product = models.Product(
         id=product.id,
         name=product.name,
@@ -34,57 +25,70 @@ def post_product(db: Session, product: schemas.ProductCreate):
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
-    print(db_product)
     return db_product
 
-# Função para ler todos os produtos e registrar visualizações
-def get_all_products(db: Session):
+# Função para ler todos os produtos
+def get_all_products(db: Session) -> List[schemas.ProductResponse]:
     products = db.query(models.Product).all()
 
-    # Gera a lista de produtos como dicionários
     product_list = [
-        {
+        schemas.ProductResponse(
+            id=product.id,
+            name=product.name,
+            description=product.description,
+            price=product.price
+        )
+        for product in products
+    ]
+
+    # Armazenar no MongoDB as informações buscadas
+    log_entry = {
+        "product_ids": [product.id for product in products],
+        "searched_at": datetime.now()
+    }
+    views_collection.insert_one(log_entry)
+
+    return product_list
+
+# Função para ler um produto por ID
+def get_product_id(db: Session, product_id: int) -> dict:
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+
+    if product:
+
+        product_detail = {
             "id": product.id,
             "name": product.name,
             "description": product.description,
             "price": product.price,
         }
-        for product in products
-    ]
-
-    return product_list
-
-# Função para ler um produto por ID e registrar visualização
-def get_product_id(db: Session, product_id: int):
-    product = db.query(models.Product).filter(models.Product.id == product_id).first()
-    if product:
-        product_detail = {
-            "id": product.id,
-            "name": product.name,
-            "description": product.description,
-            "price": product.price,         
-        }
         return product_detail
-    
+
     raise HTTPException(status_code=404, detail="Produto não existe")
 
 # Função para atualizar um produto existente
-def put_product(db: Session, product_id: int, product: schemas.ProductUpdate):
+def put_product(db: Session, product_id: int, product: schemas.ProductUpdate) -> models.Product:
     db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
-    if product:
-        db_product.name = product.name
-        db_product.description = product.description
-        db_product.price = product.price
-        db_product.status = product.status
-        db_product.stock_quantity = product.stock_quantity
-        db.commit()
-        db.refresh(db_product)
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Produto não encontrado.")
+
+    db_product.name = product.name
+    db_product.description = product.description
+    db_product.price = product.price
+    db_product.status = product.status
+    db_product.stock_quantity = product.stock_quantity
+    db.commit()
+    db.refresh(db_product)
+    
     return db_product
 
 # Função para excluir um produto
-def del_product(db: Session, product_id: int):
+def del_product(db: Session, product_id: int) -> models.Product:
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
-    if product:
-        db.delete(product)
-        db.commit()
+    if not product:
+        raise HTTPException(status_code=404, detail="Produto não encontrado.")
+    
+    db.delete(product)
+    db.commit()
     return product
+
