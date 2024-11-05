@@ -3,10 +3,10 @@ from database import Base
 import enum
 
 # Modelo dos Status dos Produtos
-class ProductStatus(str, enum.Enum):
-    in_stock = "em estoque"
-    replenishment = "em reposição"
-    out_of_stock = "em falta"
+class ProductStatus(enum.IntEnum):
+    in_stock = 1
+    replenishment = 2
+    out_of_stock = 3
 
 # Modelo dos Produtos
 class Product(Base):

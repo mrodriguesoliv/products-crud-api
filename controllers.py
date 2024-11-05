@@ -1,11 +1,10 @@
-from pymongo.errors import PyMongoError
 from datetime import datetime
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from dotenv import load_dotenv
-from pymongo.errors import PyMongoError
 import models
 import schemas
+from schemas import ProductStatus
 from database import views_collection
 from typing import List
 
@@ -14,12 +13,15 @@ load_dotenv()
 
 # Função para criar um novo produto
 def post_product(db: Session, product: schemas.ProductCreate) -> models.Product:
+
+    status = ProductStatus(product.status)
+
     db_product = models.Product(
         id=product.id,
         name=product.name,
         description=product.description,
         price=product.price,
-        status=product.status,
+        status=status,
         stock_quantity=product.stock_quantity
     )
     db.add(db_product)
@@ -27,7 +29,7 @@ def post_product(db: Session, product: schemas.ProductCreate) -> models.Product:
     db.refresh(db_product)
     return db_product
 
-# Função para ler todos os produtos
+# Função para ler todos os produtos e armazenar log visualização
 def get_all_products(db: Session) -> List[schemas.ProductResponse]:
     products = db.query(models.Product).all()
 
@@ -88,6 +90,9 @@ def del_product(db: Session, product_id: int) -> models.Product:
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado.")
     
+    # Excluir o log de visualizações do produto
+    views_collection.delete_many({"product_ids": product_id})
+
     db.delete(product)
     db.commit()
     return product
