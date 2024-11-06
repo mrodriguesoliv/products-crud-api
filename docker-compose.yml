@@ -10,10 +10,11 @@ services:
       - mongo
     environment:
       - MONGO_URI=mongodb://mongo:27017/products_logs
-      - SQLALCHEMY_DATABASE_URL=sqlite:///./products_crud_api.db
+      - SQLALCHEMY_DATABASE_URL=sqlite:////app/products_crud_api.db
     volumes:
       - .:/app
-
+    working_dir: /app
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
   mongo:
     image: mongo:latest
@@ -25,5 +26,3 @@ services:
 
 volumes:
   mongo_data:
-
-
