@@ -20,10 +20,23 @@ Este projeto é uma API de CRUD (Create, Read, Update, Delete) para gerenciament
 
 ## Configuração do Projeto
 
-### 1. Clonando o Repositório
+### Acesso ao Postman
+O arquivo para realizar o CRUD via Postman com os exemplos pré-definidos está no diretório "docs".
 
-Primeiro, clone este repositório para o seu ambiente local.
+### Clonando o Repositório, Rodando os Containers e os Testes Unitários.
+
+Primeiro, clone este repositório para o seu ambiente local:
 
 ```bash
 git clone https://github.com/mrodriguesoliv/products-crud-api.git
 cd products-crud-api
+```
+
+Depois disso, rode os containers e os testes unitários:
+
+```bash
+docker-compose up -d --build
+docker exec -it products_crud_api_app pytest
+```
+
+Com isso, realize o CRUD via Postman.
