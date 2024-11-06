@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
-import app.models
-import app.schemas
-from app.schemas import ProductStatus
-from app.database import views_collection
+import app.db.models
+import app.schemas.schemas
+from app.schemas.schemas import ProductStatus
+from app.db.database import views_collection
 from typing import List
 
 
@@ -14,11 +14,11 @@ from typing import List
 load_dotenv()
 
 # Função para criar um novo produto
-def post_product(db: Session, product: app.schemas.ProductCreate) -> app.models.Product:
+def post_product(db: Session, product: app.schemas.schemas.ProductCreate) -> app.db.models.Product:
 
     status = ProductStatus(product.status)
 
-    db_product = app.models.Product(
+    db_product = app.db.models.Product(
         id=product.id,
         name=product.name,
         description=product.description,
@@ -32,11 +32,11 @@ def post_product(db: Session, product: app.schemas.ProductCreate) -> app.models.
     return db_product
 
 # Função para ler todos os produtos e armazenar log visualização
-def get_all_products(db: Session) -> List[app.schemas.ProductResponse]:
-    products = db.query(app.models.Product).all()
+def get_all_products(db: Session) -> List[app.schemas.schemas.ProductResponse]:
+    products = db.query(app.db.models.Product).all()
 
     product_list = [
-        app.schemas.ProductResponse(
+        app.schemas.schemas.ProductResponse(
             id=product.id,
             name=product.name,
             description=product.description,
@@ -55,8 +55,8 @@ def get_all_products(db: Session) -> List[app.schemas.ProductResponse]:
     return product_list
 
 # Função para atualizar um produto existente
-def put_product(db: Session, product_id: int, product: app.schemas.ProductUpdate) -> app.models.Product:
-    db_product = db.query(app.models.Product).filter(app.models.Product.id == product_id).first()
+def put_product(db: Session, product_id: int, product: app.schemas.schemas.ProductUpdate) -> app.db.models.Product:
+    db_product = db.query(app.db.models.Product).filter(app.db.models.Product.id == product_id).first()
     if not db_product:
         raise HTTPException(status_code=404, detail="Produto não encontrado.")
 
@@ -71,8 +71,8 @@ def put_product(db: Session, product_id: int, product: app.schemas.ProductUpdate
     return db_product
 
 # Função para excluir um produto
-def del_product(db: Session, product_id: int) -> app.models.Product:
-    product = db.query(app.models.Product).filter(app.models.Product.id == product_id).first()
+def del_product(db: Session, product_id: int) -> app.db.models.Product:
+    product = db.query(app.db.models.Product).filter(app.db.models.Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado.")
     

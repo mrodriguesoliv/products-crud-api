@@ -1,13 +1,11 @@
 import pytest
 import sys
 import os
-import uuid
-from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.models import Base, Product
-from app.controllers import post_product, get_all_products, put_product
-from app.schemas import ProductCreate, ProductUpdate, ProductStatus
+from app.db.models import Base, Product
+from app.controllers.controllers import post_product, get_all_products, put_product
+from app.schemas.schemas import ProductCreate, ProductUpdate, ProductStatus
 
 # Adicionando o diretório 'app' ao PYTHONPATH
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '/app')))
