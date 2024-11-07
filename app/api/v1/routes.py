@@ -8,44 +8,40 @@ from app.db.models import Product
 
 router = APIRouter()
 
-# Criar um novo produto
 @router.post("/products/", response_model=ProductResponse)
 def create_product(product: ProductCreate, db: Session = Depends(get_db)):
+    """Cria um novo produto no banco de dados."""
     return post_product(db, product)
 
-# Ler todos os produtos
 @router.get("/products/", response_model=List[ProductResponse])
 def read_all_products(db: Session = Depends(get_db)):
+    """Retorna uma lista de todos os produtos."""
     return get_all_products(db)
 
-# Atualizar um produto
 @router.put("/products/{product_id}", response_model=ProductResponse)
 def update_product(product_id: int, product: ProductCreate, db: Session = Depends(get_db)):
+    """Atualiza as informações de um produto existente."""
     return put_product(db, product_id, product)
 
-# Excluir um produto 
 @router.delete("/products/{product_id}", response_model=ProductResponse)
 def delete_product(product_id: int, db: Session = Depends(get_db)):
+    """Exclui um produto pelo ID."""
     return del_product(db, product_id)
 
-# Ler um produto por ID com log de visualização
 @router.get("/products/logs/{product_id}", response_model=ProductWithLogs)
 def read_product_with_logs(product_id: int, db: Session = Depends(get_db)):
-    # Obter as informações do produto
+    """Retorna informações do produto junto com os logs de visualização."""
     product_teste = db.query(Product).filter(Product.id == product_id).first()
     
     if not product_teste:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
 
-    # Obter o log de buscas para o produto no MongoDB
     logs = list(views_collection.find({"product_ids": product_id}))
     
-    # Formatar os logs
     product_logs = [
         ProductLog(searched_at=log['searched_at']) for log in logs
     ]
 
-    # Criar a resposta
     response = ProductWithLogs(
         id=product_teste.id,
         name=product_teste.name,

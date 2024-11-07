@@ -20,8 +20,9 @@ Este projeto é uma API de CRUD (Create, Read, Update, Delete) para gerenciament
 
 ## Estrutura do Projeto
 
+```plaintext
 products-crud-api
-├── README.md                                     # Descrição do projeto
+├── README.md
 ├── alembic                                       # Diretório para migrações de banco de dados
 │   ├── README                                    # Informações sobre o uso do Alembic
 │   ├── env.py                                    # Configurações de conexão com a base de dados
@@ -52,7 +53,7 @@ products-crud-api
 │   ├── __init__.py                               # Inicialização do pacote de testes
 │   └── test_controllers.py                       # Testes para os controllers da API
 └── venv                                          # Ambiente virtual Python
-
+```
 
 ## Configuração do Projeto
 

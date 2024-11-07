@@ -9,17 +9,14 @@ from app.schemas.schemas import ProductStatus
 from app.db.database import views_collection
 from typing import List
 
-
-
 load_dotenv()
 
-# Função para criar um novo produto
 def post_product(db: Session, product: app.schemas.schemas.ProductCreate) -> app.db.models.Product:
-
+    """Cria um novo produto no banco de dados."""
+    
     status = ProductStatus(product.status)
 
     db_product = app.db.models.Product(
-        id=product.id,
         name=product.name,
         description=product.description,
         price=product.price,
@@ -31,8 +28,9 @@ def post_product(db: Session, product: app.schemas.schemas.ProductCreate) -> app
     db.refresh(db_product)
     return db_product
 
-# Função para ler todos os produtos e armazenar log visualização
 def get_all_products(db: Session) -> List[app.schemas.schemas.ProductResponse]:
+    """Retorna uma lista de todos os produtos e registra a busca no MongoDB."""
+
     products = db.query(app.db.models.Product).all()
 
     product_list = [
@@ -40,12 +38,12 @@ def get_all_products(db: Session) -> List[app.schemas.schemas.ProductResponse]:
             id=product.id,
             name=product.name,
             description=product.description,
-            price=product.price
-        )
+            price=product.price,
+            status=product.status,
+            stock_quantity=product.stock_quantity)
         for product in products
     ]
 
-    # Armazenar no MongoDB as informações buscadas
     log_entry = {
         "product_ids": [product.id for product in products],
         "searched_at": datetime.now()
@@ -54,8 +52,9 @@ def get_all_products(db: Session) -> List[app.schemas.schemas.ProductResponse]:
 
     return product_list
 
-# Função para atualizar um produto existente
 def put_product(db: Session, product_id: int, product: app.schemas.schemas.ProductUpdate) -> app.db.models.Product:
+    """Atualiza as informações de um produto existente."""
+    
     db_product = db.query(app.db.models.Product).filter(app.db.models.Product.id == product_id).first()
     if not db_product:
         raise HTTPException(status_code=404, detail="Produto não encontrado.")
@@ -70,16 +69,15 @@ def put_product(db: Session, product_id: int, product: app.schemas.schemas.Produ
     
     return db_product
 
-# Função para excluir um produto
 def del_product(db: Session, product_id: int) -> app.db.models.Product:
+    """Exclui um produto e seus registros de visualização no MongoDB."""
+    
     product = db.query(app.db.models.Product).filter(app.db.models.Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Produto não encontrado.")
     
-    # Excluir o log de visualizações do produto
     views_collection.delete_many({"product_ids": product_id})
 
     db.delete(product)
     db.commit()
     return JSONResponse(content={"message": "Item excluído com sucesso!"})
-
